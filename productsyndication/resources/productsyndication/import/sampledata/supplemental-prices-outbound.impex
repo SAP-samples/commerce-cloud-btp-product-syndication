@@ -1,0 +1,58 @@
+# Product Syndication - Generic Product Export Configuration
+# placeholders in file:
+# * clientId - OAuth Client to Product Syndication
+# * clientSecret - OAuth Client Secret to Product Syndication
+# * authUrl - OAuth Server URL for Product Syndication
+# * productSyndicationDomain - Product Syndication URL domain. Product Syndication service is accessible in /productsyndication context path
+# * adChannelAccountName - Ad Channel
+# * locale - 2-letter ISO-639-1 locale symbol which you want to feed: e.g. en
+# * countryIsoCode - 2-letter ISO-3166-1 alpha-2, e.g. US
+
+INSERT_UPDATE OAuthClientDetails; clientId[unique = true] ; oAuthUrl    ; scope      ; authorizedGrantTypes; clientSecret
+                                ; {{clientId}}            ; {{authUrl}} ; write,read ; client_credentials  ; {{clientSecret}}
+
+INSERT_UPDATE ConsumedOAuthCredential; id[unique = true]                     ; clientId     ; clientSecret    ; oAuthUrl
+                                     ; SupplementalProductDataConsumedOAuthCredential ; {{clientId}} ;{{clientSecret}} ; {{authUrl}}
+
+# Note: name and specUrl or specData attribute values are required in order to create the Endpoint, but does not affect outboundSync functionality.
+INSERT_UPDATE Endpoint; id[unique = true]              ; version[unique = true]; name                           ; specUrl
+                      ; SupplementalProductDataOutboundEndpoint ; endpoint_version_1.0  ; SupplementalPricesOutboundEndpoint ; {{productSyndicationDomain}}/productsyndication/odata2/{{adChannelAccountName}}/{{locale}}/{{countryIsocode}}
+
+INSERT_UPDATE DestinationTarget; id[unique = true]
+                               ; SupplementalProductDataOutboundTarget
+
+INSERT_UPDATE ConsumedDestination; id[unique = true]                                  ; url                                                       ; endpoint(id, version)                              ; destinationTarget(id)       ; credential(id)
+                                 ; SupplementalProductDataOutboundConsumedDestination ; {{productSyndicationDomain}}/productsyndication/odata2/{{adChannelAccountName}}/{{locale}}/{{countryIsocode}}  ; SupplementalProductDataOutboundEndpoint:endpoint_version_1.0 ; SupplementalProductDataOutboundTarget ; SupplementalProductDataConsumedOAuthCredential
+
+# Then to create the OutboundChannelConfiguration, OutboundSyncStreamConfigurationContainer, OutboundSyncStreamConfiguration(s), OutboundSyncJob & OutboundSyncCronJob either import:
+INSERT_UPDATE OutboundChannelConfiguration; code[unique = true]                 ; integrationObject(code); destination(id)                           ; autoGenerate; batch
+                                          ; SupplementalProductDataOutboundChannelConfig ; SupplementalProductData               ; SupplementalProductDataOutboundConsumedDestination ; true        ; true
+
+# Update the job session attributes
+INSERT_UPDATE OutboundSyncJob; code[unique = true]                    ; sessionLanguage(isocode); sessionCurrency(isocode); sessionUser(uid)
+                             ; SupplementalProductDataOutboundChannelConfigJob ; en                      ; USD                     ; admin
+
+INSERT_UPDATE OutboundSyncCronJob; code[unique = true]                                 ; sessionLanguage(isocode); sessionCurrency(isocode); sessionUser(uid)
+                                 ; SupplementalProductDataOutboundChannelConfigCronJob ; en                      ; USD                     ; admin
+
+# Update the stream whereClause to only send online products that are approved
+UPDATE OutboundSyncStreamConfiguration; streamId[unique = true]                            ; whereClause
+                                      ; SupplementalProductDataOutboundChannelConfig_PriceRow_Stream
+
+# Reset the stream
+REMOVE Script[batchmode = true]; code[unique = true]
+                               ; SupplementalProductDataResetStream
+
+INSERT_UPDATE Script; code[unique = true]       ; scriptType(code); active; content
+                    ; SupplementalProductDataResetStream ; GROOVY          ; true  ; "
+import org.slf4j.LoggerFactory
+
+LoggerFactory.getLogger('SupplementalProductDataResetStream_script').info('Resetting the Supplemental Product Price Data outbound stream')
+changeDetectionService.resetStream 'SupplementalProductDataOutboundChannelConfig_PriceRow_Stream'
+"
+
+INSERT_UPDATE ScriptingJob; code[unique = true]          ; scriptURI
+                          ; SupplementalProductDataResetStreamJob ; model://SupplementalProductDataResetStream
+
+INSERT_UPDATE CronJob; code[unique = true]              ; job(code)                    ; sessionUser(uid); sessionLanguage(isocode); sessionCurrency(isocode)
+                     ; SupplementalProductDataResetStreamCronJob ; SupplementalProductDataResetStreamJob ; admin           ; en                      ; EUR

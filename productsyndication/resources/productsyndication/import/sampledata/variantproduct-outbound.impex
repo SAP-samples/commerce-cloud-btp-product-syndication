@@ -1,0 +1,75 @@
+# Product Syndication - Variant Product Export Configuration
+# placeholders in file:
+# * clientId - OAuth Client to Product Syndication
+# * clientSecret - OAuth Client Secret to Product Syndication
+# * authUrl - OAuth Server URL for Product Syndication
+# * productSyndicationDomain - Product Syndication URL domain. Product Syndication service is accessible in /productsyndication context path
+# * adChannelAccountName - Ad Channel
+# * locale - 2-letter ISO-639-1 locale symbol which you want to feed: e.g. en
+# * countryIsoCode - 2-letter ISO-3166-1 alpha-2, e.g. US
+
+INSERT_UPDATE OAuthClientDetails; clientId[unique = true] ; oAuthUrl    ; scope      ; authorizedGrantTypes; clientSecret
+                                ; {{clientId}}            ; {{authUrl}} ; write,read ; client_credentials  ; {{clientSecret}}
+
+INSERT_UPDATE ConsumedOAuthCredential; id[unique = true]                     ; clientId     ; clientSecret    ; oAuthUrl
+                                     ; VariantProductConsumedOAuthCredential ; {{clientId}} ;{{clientSecret}} ; {{authUrl}}
+
+# Note: name and specUrl or specData attribute values are required in order to create the Endpoint, but does not affect outboundSync functionality.
+INSERT_UPDATE Endpoint; id[unique = true]              ; version[unique = true]; name                           ; specUrl
+                      ; VariantProductOutboundEndpoint ; endpoint_version_1.0  ; VariantProductOutboundEndpoint ; {{productSyndicationDomain}}/productsyndication/odata2/{{adChannelAccountName}}/{{locale}}/{{countryIsocode}}
+
+INSERT_UPDATE DestinationTarget; id[unique = true]
+                               ; VariantProductOutboundTarget
+
+INSERT_UPDATE ConsumedDestination; id[unique = true]                         ; url                                                       ; endpoint(id, version)                               ; destinationTarget(id)        ; credential(id)
+                                 ; VariantProductOutboundConsumedDestination ; {{productSyndicationDomain}}/productsyndication/odata2/{{adChannelAccountName}}/{{locale}}/{{countryIsocode}}   ; VariantProductOutboundEndpoint:endpoint_version_1.0 ; VariantProductOutboundTarget ; VariantProductConsumedOAuthCredential
+
+# Then to create the OutboundChannelConfiguration, OutboundSyncStreamConfigurationContainer, OutboundSyncStreamConfiguration(s), OutboundSyncJob & OutboundSyncCronJob either import:
+INSERT_UPDATE OutboundChannelConfiguration; code[unique = true]                 ; integrationObject(code); destination(id)                           ; autoGenerate; batch
+                                          ; VariantProductOutboundChannelConfig ; VariantProduct         ; VariantProductOutboundConsumedDestination ; true        ; true
+
+# Update the job session attributes
+INSERT_UPDATE OutboundSyncJob; code[unique = true]                    ; sessionLanguage(isocode); sessionCurrency(isocode); sessionUser(uid)
+                             ; VariantProductOutboundChannelConfigJob ; en                      ; USD                     ; admin
+
+INSERT_UPDATE OutboundSyncCronJob; code[unique = true]                        ; sessionLanguage(isocode); sessionCurrency(isocode); sessionUser(uid)
+                                 ; VariantProductOutboundChannelConfigCronJob ; en                      ; USD                     ; admin
+
+INSERT_UPDATE Trigger; cronJob(code)[unique = true]      ; second; minute; hour; day; month; year; relative; maxAcceptableDelay
+                     ; VariantProductOutboundChannelConfigCronJob; 0;    0; 0    ;  7  ;  -1  ; -1;   true    ; -1
+
+# Update the stream whereClause to only send online products that are approved
+UPDATE OutboundSyncStreamConfiguration; streamId[unique = true]                                              ; whereClause
+                                      ; VariantProductOutboundChannelConfig_ApparelSizeVariantProduct_Stream ; "
+{item.approvalStatus} = ({{ SELECT {e.pk} FROM {ArticleApprovalStatus AS e} WHERE {e.codeLowerCase} = 'approved' }})
+AND {item.catalogVersion} IN ({{ SELECT {c.pk} FROM {CatalogVersion AS c} WHERE {c.version} = 'Online' }})
+"
+
+# Reset the stream
+REMOVE Script[batchmode = true]; code[unique = true]
+                               ; VariantProductResetStream
+
+INSERT_UPDATE Script; code[unique = true]       ; scriptType(code); active; content
+                    ; VariantProductResetStream ; GROOVY          ; true  ; "
+import org.slf4j.LoggerFactory
+
+LoggerFactory.getLogger('VariantProductResetStream_script').info('Resetting the variant product outbound stream')
+changeDetectionService.resetStream 'VariantProductOutboundChannelConfig_ApparelSizeVariantProduct_Stream'
+"
+
+INSERT_UPDATE ScriptingJob; code[unique = true]          ; scriptURI
+                          ; VariantProductResetStreamJob ; model://VariantProductResetStream
+
+INSERT_UPDATE CronJob; code[unique = true]              ; job(code)                    ; sessionUser(uid); sessionLanguage(isocode); sessionCurrency(isocode)
+                     ; VariantProductResetStreamCronJob ; VariantProductResetStreamJob ; admin           ; en                      ; EUR
+
+# Composite job
+INSERT_UPDATE CompositeEntry; code[unique = true]                             ; executableCronJob(code)
+                            ; VariantProductResetStreamCronJobEntry           ; VariantProductResetStreamCronJob
+                            ; VariantProductOutboundChannelConfigCronJobEntry ; VariantProductOutboundChannelConfigCronJob
+
+INSERT_UPDATE CompositeCronJob; code[unique = true]               ; job(code)               ; compositeEntries(code)                                                                ; sessionUser(uid); sessionLanguage(isocode); sessionCurrency(isocode)
+                                          ; VariantProductOutboundFullCronJob ; compositeJobPerformable ; VariantProductResetStreamCronJobEntry,VariantProductOutboundChannelConfigCronJobEntry ; admin           ; en                      ; EUR
+
+INSERT_UPDATE Trigger; cronJob(code)[unique = true]      ; second; minute; hour; day; month; year; relative; maxAcceptableDelay
+                     ; VariantProductOutboundFullCronJob ; 0     ; 0     ; 0   ; 30 ; -1   ; -1  ; true    ; -1

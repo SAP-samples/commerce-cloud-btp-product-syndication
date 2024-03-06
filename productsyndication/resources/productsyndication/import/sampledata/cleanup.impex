@@ -1,0 +1,92 @@
+REMOVE CompositeCronJob; code[unique = true]
+                       ; GenericProductOutboundFullCronJob
+                       ; MultiDProductOutboundFullCronJob
+                       ; VariantProductOutboundFullCronJob
+
+REMOVE CompositeEntry; code[unique = true]
+                     ; GenericProductResetStreamCronJobEntry
+                     ; GenericProductOutboundChannelConfigCronJobEntry
+                     ; MultiDProductResetStreamCronJobEntry
+                     ; MultiDProductOutboundChannelConfigCronJobEntry
+                     ; VariantProductResetStreamCronJobEntry
+                     ; VariantProductOutboundChannelConfigCronJobEntry
+
+REMOVE OutboundSyncJob; code[unique = true]
+                      ; GenericProductOutboundChannelConfigJob
+                      ; MultiDProductOutboundChannelConfigJob
+                      ; VariantProductOutboundChannelConfigJob
+                      ; SupplementalProductDataOutboundChannelConfigJob
+
+REMOVE OutboundChannelConfiguration; code[unique = true]
+                                   ; GenericProductOutboundChannelConfig
+                                   ; MultiDProductOutboundChannelConfig
+                                   ; VariantProductOutboundChannelConfig
+                                   ; SupplementalProductDataOutboundChannelConfig
+
+REMOVE OutboundSyncStreamConfigurationContainer; id[unique = true]
+                                               ; GenericProductOutboundChannelConfigContainer
+                                               ; MultiDProductOutboundChannelConfigContainer
+                                               ; VariantProductOutboundChannelConfigContainer
+                                               ; SupplementalProductDataOutboundChannelConfigContainer
+
+REMOVE Endpoint; id[unique = true]                       ; version[unique = true]
+               ; GenericProductOutboundEndpoint          ; endpoint_version_1.0
+               ; MultiDProductOutboundEndpoint           ; endpoint_version_1.0
+               ; VariantProductOutboundEndpoint          ; endpoint_version_1.0
+               ; SupplementalProductDataOutboundEndpoint ; endpoint_version_1.0
+
+REMOVE BasicCredential; id[unique = true]
+                      ; GenericProductOutboundCredential
+                      ; MultiDProductOutboundCredential
+                      ; VariantProductOutboundCredential
+                      ; SupplementalProductDataOutboundCredential
+
+REMOVE InboundChannelConfiguration  ; integrationObject(code)[unique = true]
+                                    ; GenericProduct
+                                    ; MultiDProduct
+                                    ; VariantProduct
+                                    ; SupplementalProductData
+                                    ; PriceRow
+
+REMOVE IntegrationObjectItem; integrationObject(code)[unique = true]; code[unique = true]
+                            ; GenericProduct                        ; CatalogVersion
+                            ; GenericProduct                        ; Catalog
+                            ; GenericProduct                        ; Currency
+                            ; GenericProduct                        ; PriceRow
+                            ; GenericProduct                        ; ArticleApprovalStatus
+                            ; GenericProduct                        ; Product
+                            ; MultiDProduct                         ; CatalogVersion
+                            ; MultiDProduct                         ; Catalog
+                            ; MultiDProduct                         ; GenericVariantProduct
+                            ; MultiDProduct                         ; Currency
+                            ; MultiDProduct                         ; ArticleApprovalStatus
+                            ; MultiDProduct                         ; PriceRow
+                            ; VariantProduct                        ; CatalogVersion
+                            ; VariantProduct                        ; Catalog
+                            ; VariantProduct                        ; Currency
+                            ; VariantProduct                        ; PriceRow
+                            ; VariantProduct                        ; ArticleApprovalStatus
+                            ; VariantProduct                        ; ApparelSizeVariantProduct
+                            ; SupplementalProductData               ; Currency
+                            ; SupplementalProductData               ; PriceRow
+                            ; SupplementalProductData               ; Catalog
+                            ; SupplementalProductData               ; CatalogVersion
+
+REMOVE IntegrationObject; code[unique = true]
+                        ; GenericProduct
+                        ; MultiDProduct
+                        ; VariantProduct
+                        ; SupplementalProductData
+
+REMOVE CronJob; code[unique = true]
+              ; GenericProductResetStreamCronJob
+              ; MultiDProductResetStreamCronJob
+              ; VariantProductResetStreamCronJob
+              ; SupplementalProductDataResetStreamCronJob
+
+REMOVE Script[batchmode = true] ; code[unique = true]
+                                ; GenericProductResetStream
+                                ; MultiDProductResetStream
+                                ; VariantProductResetStream
+                                ; SupplementalProductDataResetStream
+                                ; SupplementalProductAvailabilityAttribute

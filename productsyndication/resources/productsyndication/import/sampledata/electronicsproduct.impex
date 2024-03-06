@@ -1,0 +1,10 @@
+#  Integration object Classification Attributes
+# 
+#  Given classification attributes are related to electronics catalog and are based on GenericProduct from genericproduct.impex
+#  It is required to import 'genericproduct.impex' beforehand
+
+INSERT_UPDATE IntegrationObjectItemClassificationAttribute; integrationObjectItem(integrationObject(code), code)[unique = true]; attributeName[unique = true]  ; classAttributeAssignment(classificationClass(catalogVersion(catalog(id), version), code), classificationAttribute(systemVersion(catalog(id), version), code)); returnIntegrationObjectItem(integrationObject(code), code)
+                                                          ; GenericProduct:Product                                             ; clss_Memory_Flash             ; ElectronicsClassification:1.0:42:ElectronicsClassification:1.0:Internal memory, 6                                                                            ;
+                                                          ; GenericProduct:Product                                             ; clss_Display_Size             ; ElectronicsClassification:1.0:41:ElectronicsClassification:1.0:Display, 83                                                                                   ;
+                                                          ; GenericProduct:Product                                             ; clss_LensSystem_ApertureRange ; ElectronicsClassification:1.0:39:ElectronicsClassification:1.0:Aperture range, 638                                                                           ;
+
