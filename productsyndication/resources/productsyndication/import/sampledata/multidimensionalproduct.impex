@@ -1,0 +1,94 @@
+# Integration object
+INSERT_UPDATE IntegrationObject; code[unique = true]
+                               ; MultiDProduct
+
+INSERT_UPDATE IntegrationObjectItem; integrationObject(code)[unique = true]; code[unique = true]   ; type(code)            ; root[default = false]; itemTypeMatch(code)
+                                   ; MultiDProduct                         ; CatalogVersion        ; CatalogVersion        ;                      ; RESTRICT_TO_ITEM_TYPE
+                                   ; MultiDProduct                         ; Catalog               ; Catalog               ;                      ; ALL_SUBTYPES
+                                   ; MultiDProduct                         ; GenericVariantProduct ; GenericVariantProduct ; true                 ; ALL_SUBTYPES
+                                   ; MultiDProduct                         ; Currency              ; Currency              ;                      ; RESTRICT_TO_ITEM_TYPE
+                                   ; MultiDProduct                         ; ArticleApprovalStatus ; ArticleApprovalStatus ;                      ; ALL_SUBTYPES
+                                   ; MultiDProduct                         ; PriceRow              ; PriceRow              ;                      ; ALL_SUBTYPES
+
+INSERT_UPDATE IntegrationObjectItemAttribute; integrationObjectItem(integrationObject(code), code)[unique = true]; attributeName[unique = true]; attributeDescriptor(enclosingType(code), qualifier); returnIntegrationObjectItem(integrationObject(code), code); unique[default = false]
+# Catalog Version and Catalog
+                                            ; MultiDProduct:CatalogVersion                                       ; version                     ; CatalogVersion:version                             ;                                                           ;
+                                            ; MultiDProduct:CatalogVersion                                       ; active                      ; CatalogVersion:active                              ;                                                           ;
+                                            ; MultiDProduct:CatalogVersion                                       ; catalog                     ; CatalogVersion:catalog                             ; MultiDProduct:Catalog                                     ;
+                                            ; MultiDProduct:Catalog                                              ; id                          ; Catalog:id                                         ;                                                           ; true
+# Price
+                                            ; MultiDProduct:Currency                                             ; isocode                     ; Currency:isocode                                   ;                                                           ; true
+                                            ; MultiDProduct:PriceRow                                             ; net                         ; PriceRow:net                                       ;                                                           ; true
+                                            ; MultiDProduct:PriceRow                                             ; currency                    ; PriceRow:currency                                  ; MultiDProduct:Currency                                   ; true
+                                            ; MultiDProduct:PriceRow                                             ; price                       ; PriceRow:price                                     ;                                                           ;
+# Product
+                                            ; MultiDProduct:GenericVariantProduct                                ; catalogVersion              ; GenericVariantProduct:catalogVersion               ; MultiDProduct:CatalogVersion                              ;
+                                            ; MultiDProduct:GenericVariantProduct                                ; code                        ; GenericVariantProduct:code                         ;                                                           ; true
+                                            ; MultiDProduct:GenericVariantProduct                                ; name                        ; GenericVariantProduct:name                         ;                                                           ;
+                                            ; MultiDProduct:GenericVariantProduct                                ; description                 ; GenericVariantProduct:description                  ;                                                           ;
+                                            ; MultiDProduct:GenericVariantProduct                                ; ean                         ; GenericVariantProduct:ean                          ;                                                           ;
+                                            ; MultiDProduct:GenericVariantProduct                                ; mpn                         ; GenericVariantProduct:manufacturerAID              ;                                                           ;
+                                            ; MultiDProduct:GenericVariantProduct                                ; approvalStatus              ; GenericVariantProduct:approvalStatus               ; MultiDProduct:ArticleApprovalStatus                       ;
+                                            ; MultiDProduct:ArticleApprovalStatus                                ; code                        ; ArticleApprovalStatus:code                         ;                                                           ; true
+                                            ; MultiDProduct:GenericVariantProduct                                ; europe1Prices               ; Product:europe1Prices                              ; MultiDProduct:PriceRow                                    ;
+                                            ; MultiDProduct:GenericVariantProduct                                ; expirationDate              ; GenericVariantProduct:offlineDate
+                                            ; MultiDProduct:GenericVariantProduct                                ; availabilityDate            ; GenericVariantProduct:onlineDate
+
+# Scripts for virtual attributes - this REMOVE prevents any issues with versioning
+REMOVE Script[batchmode = true]; code[unique = true]
+                               ; MultiDProductColorAttribute
+                               ; MultiDProductGroupIdAttribute
+                               ; MultiDProductImageUrlAttribute
+                               ; MultiDProductBrandAttribute
+
+INSERT_UPDATE Script; code[unique = true]                ; scriptType(code); active; content
+                    ; MultiDProductColorAttribute        ; GROOVY          ; true  ; "itemModel.supercategories.find{ it.supercategories.find{ it.code == 'B2C_Color' } }?.name"
+                    ; MultiDProductGroupIdAttribute      ; GROOVY          ; true  ; "itemModel.baseProduct?.code"
+                    ; MultiDProductImageUrlAttribute     ; GROOVY          ; true  ; "itemModel.picture ? itemModel.picture.url :  itemModel.baseProduct?.picture?.url"
+                    ; MultiDProductBrandAttribute        ; GROOVY          ; true  ; "
+def BRANDS = 'brands'
+def cats = itemModel.baseProduct?.supercategories
+def brand = null
+for (i = 0; i < cats.size(); ++i) {
+  brand = commerceCategoryService.getPathsForCategory(cats[i]).stream()
+    .filter{p -> p.size() > 1 && p.get(0).code == BRANDS}
+    .findFirst()
+    .map{p -> p.get(1)}
+    .map{c -> c.name}
+    .orElse(null)
+
+  if (brand != null) {
+    break;
+  }
+}
+
+// fallback when product is not assigned to brand category
+brand = brand ?: itemModel.manufacturerName
+// fallback when product does not have manufacturerName set, then check baseProduct
+brand = brand ?: itemModel.baseProduct?.manufacturerName
+
+brand
+"
+
+# Virtual attributes
+INSERT_UPDATE IntegrationObjectItemVirtualAttribute; integrationObjectItem(integrationObject(code), code)[unique = true]; attributeName[unique = true]; retrievalDescriptor(code)
+                                                   ; MultiDProduct:GenericVariantProduct                                ; url                         ; GenericProductUrl
+                                                   ; MultiDProduct:GenericVariantProduct                                ; imageUrl                    ; MultiDProductImageUrl
+                                                   ; MultiDProduct:GenericVariantProduct                                ; availability                ; GenericProductAvailability
+                                                   ; MultiDProduct:GenericVariantProduct                                ; brand                       ; MultiDProductBrand
+                                                   ; MultiDProduct:GenericVariantProduct                                ; condition                   ; GenericProductCondition
+                                                   ; MultiDProduct:GenericVariantProduct                                ; taxes                       ; GenericProductUSTax
+                                                   ; MultiDProduct:GenericVariantProduct                                ; bundle                      ; GenericProductBundle
+# THAT IS A VARIANT ATTRIBUTE
+                                                   ; MultiDProduct:GenericVariantProduct                                ; color                       ; MultiDProductColor
+                                                   ; MultiDProduct:GenericVariantProduct                                ; itemGroupId                 ; MultiDProductGroupId
+
+INSERT_UPDATE IntegrationObjectVirtualAttributeDescriptor; code[unique = true]       ; logicLocation(code)                        ; type(code)
+                                                         ; MultiDProductColor        ; model://MultiDProductColorAttribute        ; java.lang.String
+                                                         ; MultiDProductGroupId      ; model://MultiDProductGroupIdAttribute      ; java.lang.String
+                                                         ; MultiDProductImageUrl     ; model://MultiDProductImageUrlAttribute     ; java.lang.String
+                                                         ; MultiDProductBrand        ; model://MultiDProductBrandAttribute        ; java.lang.String
+
+# Inbound channel to allow for testing values with a REST client like Postman
+INSERT_UPDATE InboundChannelConfiguration; integrationObject(code)[unique = true]; authenticationType(code)
+                                         ; MultiDProduct                         ; BASIC

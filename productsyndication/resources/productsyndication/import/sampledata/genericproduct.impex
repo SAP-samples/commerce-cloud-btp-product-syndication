@@ -1,0 +1,115 @@
+# Integration object
+INSERT_UPDATE IntegrationObject; code[unique = true]
+                               ; GenericProduct
+
+INSERT_UPDATE IntegrationObjectItem; integrationObject(code)[unique = true]; code[unique = true]   ; type(code)            ; root[default = false]; itemTypeMatch(code)
+                                   ; GenericProduct                        ; CatalogVersion        ; CatalogVersion        ;                      ; RESTRICT_TO_ITEM_TYPE
+                                   ; GenericProduct                        ; Catalog               ; Catalog               ;                      ; ALL_SUBTYPES
+                                   ; GenericProduct                        ; Currency              ; Currency              ;                      ; RESTRICT_TO_ITEM_TYPE
+                                   ; GenericProduct                        ; PriceRow              ; PriceRow              ;                      ; ALL_SUBTYPES
+                                   ; GenericProduct                        ; ArticleApprovalStatus ; ArticleApprovalStatus ;                      ; ALL_SUBTYPES
+                                   ; GenericProduct                        ; Product               ; Product               ; true                 ; RESTRICT_TO_ITEM_TYPE
+
+INSERT_UPDATE IntegrationObjectItemAttribute; integrationObjectItem(integrationObject(code), code)[unique = true]; attributeName[unique = true]; attributeDescriptor(enclosingType(code), qualifier); returnIntegrationObjectItem(integrationObject(code), code); unique[default = false]
+# Catalog Version and Catalog
+                                            ; GenericProduct:CatalogVersion                                      ; version                     ; CatalogVersion:version                             ;                                                           ;
+                                            ; GenericProduct:CatalogVersion                                      ; active                      ; CatalogVersion:active                              ;                                                           ;
+                                            ; GenericProduct:CatalogVersion                                      ; catalog                     ; CatalogVersion:catalog                             ; GenericProduct:Catalog                                    ;
+                                            ; GenericProduct:Catalog                                             ; id                          ; Catalog:id                                         ;                                                           ; true
+# Price
+                                            ; GenericProduct:Currency                                            ; isocode                     ; Currency:isocode                                   ;                                                           ; true
+                                            ; GenericProduct:PriceRow                                            ; net                         ; PriceRow:net                                       ;                                                           ; true
+                                            ; GenericProduct:PriceRow                                            ; currency                    ; PriceRow:currency                                  ; GenericProduct:Currency                                   ; true
+                                            ; GenericProduct:PriceRow                                            ; price                       ; PriceRow:price                                     ;                                                           ;
+# Product
+                                            ; GenericProduct:Product                                             ; catalogVersion              ; Product:catalogVersion                             ; GenericProduct:CatalogVersion                             ;
+                                            ; GenericProduct:Product                                             ; code                        ; Product:code                                       ;                                                           ; true
+                                            ; GenericProduct:Product                                             ; name                        ; Product:name                                       ;                                                           ;
+                                            ; GenericProduct:Product                                             ; description                 ; Product:description                                ;                                                           ;
+                                            ; GenericProduct:Product                                             ; ean                         ; Product:ean                                        ;                                                           ;
+                                            ; GenericProduct:Product                                             ; mpn                         ; Product:manufacturerAID                            ;                                                           ;
+                                            ; GenericProduct:Product                                             ; europe1Prices               ; Product:europe1Prices                              ; GenericProduct:PriceRow                                   ;
+                                            ; GenericProduct:Product                                             ; approvalStatus              ; Product:approvalStatus                             ; GenericProduct:ArticleApprovalStatus                      ;
+                                            ; GenericProduct:ArticleApprovalStatus                               ; code                        ; ArticleApprovalStatus:code                         ;                                                           ; true
+                                            ; GenericProduct:Product                                             ; expirationDate              ; Product:offlineDate
+                                            ; GenericProduct:Product                                             ; availabilityDate            ; Product:onlineDate
+
+
+# Scripts for virtual attributes - this REMOVE prevents any issues with versioning
+REMOVE Script[batchmode = true]; code[unique = true]
+                               ; GenericProductUrlAttribute
+                               ; GenericProductImageUrlAttribute
+                               ; GenericProductAvailabilityAttribute
+                               ; GenericProductBrandAttribute
+                               ; GenericProductConditionAttribute
+                               ; GenericProductUSTaxAttribute
+                               ; GenericProductBundleAttribute
+
+INSERT_UPDATE Script; code[unique = true]                 ; scriptType(code); active; content
+                    ; GenericProductUrlAttribute          ; GROOVY          ; true  ; "productModelUrlResolver.resolve(itemModel)"
+                    ; GenericProductImageUrlAttribute     ; GROOVY          ; true  ; "itemModel.picture?.url"
+                    ; GenericProductAvailabilityAttribute ; GROOVY          ; true  ; "
+def IN = 'in_stock', OUT = 'out_of_stock'
+def stocks = stockService.getAllStockLevels(itemModel)
+if (stocks.empty || stocks.stream().allMatch{s -> s.inStockStatus.code == 'forceOutOfStock'}) {
+  OUT
+} else {
+  stockService.getTotalStockLevelAmount(itemModel) > 0 ? IN : OUT
+}
+"
+                    ; GenericProductBrandAttribute        ; GROOVY          ; true  ; "
+def BRANDS = 'brands'
+def cats = itemModel.supercategories
+def brand = null
+for (i = 0; i < cats.size(); ++i) {
+  brand = commerceCategoryService.getPathsForCategory(cats[i]).stream()
+    .filter{p -> p.size() > 1 && p.get(0).code == BRANDS}
+    .findFirst()
+    .map{p -> p.get(1)}
+    .map{c -> c.name}
+    .orElse(null)
+
+  if (brand != null) {
+    break;
+  }
+}
+
+brand
+"
+                    ; GenericProductConditionAttribute    ; GROOVY          ; true  ; "'new'"
+                    ; GenericProductUSTaxAttribute        ; GROOVY          ; true  ; "
+def taxRate = null
+def hasUSPrice = itemModel.europe1Prices.stream().anyMatch{ it.currency.isocode == 'USD' }
+def ownTaxes = itemModel.ownEurope1Taxes
+if (hasUSPrice && ownTaxes != null && !ownTaxes.empty) {
+    def taxRow = ownTaxes.stream().filter{ it.tax.code != 'us-sales-tax-full' }.findFirst().orElse(null)
+    if (taxRow != null) {
+        taxRate = taxRow.tax.value.toString()
+    }
+}
+taxRate
+"
+                    ; GenericProductBundleAttribute       ; GROOVY          ; true  ; "'false'"
+
+# Virtual attributes
+INSERT_UPDATE IntegrationObjectItemVirtualAttribute; integrationObjectItem(integrationObject(code), code)[unique = true]; attributeName[unique = true]; retrievalDescriptor(code)
+                                                   ; GenericProduct:Product                                             ; url                         ; GenericProductUrl
+                                                   ; GenericProduct:Product                                             ; imageUrl                    ; GenericProductImageUrl
+                                                   ; GenericProduct:Product                                             ; availability                ; GenericProductAvailability
+                                                   ; GenericProduct:Product                                             ; brand                       ; GenericProductBrand
+                                                   ; GenericProduct:Product                                             ; condition                   ; GenericProductCondition
+                                                   ; GenericProduct:Product                                             ; taxes                       ; GenericProductUSTax
+                                                   ; GenericProduct:Product                                             ; bundle                      ; GenericProductBundle
+
+INSERT_UPDATE IntegrationObjectVirtualAttributeDescriptor; code[unique = true]        ; logicLocation(code)                         ; type(code)
+                                                         ; GenericProductUrl          ; model://GenericProductUrlAttribute          ; java.lang.String
+                                                         ; GenericProductImageUrl     ; model://GenericProductImageUrlAttribute     ; java.lang.String
+                                                         ; GenericProductAvailability ; model://GenericProductAvailabilityAttribute ; java.lang.String
+                                                         ; GenericProductBrand        ; model://GenericProductBrandAttribute        ; java.lang.String
+                                                         ; GenericProductCondition    ; model://GenericProductConditionAttribute    ; java.lang.String
+                                                         ; GenericProductUSTax        ; model://GenericProductUSTaxAttribute        ; java.lang.String
+                                                         ; GenericProductBundle       ; model://GenericProductBundleAttribute       ; java.lang.String
+
+# Inbound channel to allow for testing values with a REST client like Postman
+INSERT_UPDATE InboundChannelConfiguration; integrationObject(code)[unique = true]; authenticationType(code)
+                                         ; GenericProduct                        ; BASIC

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ Copyright (c) 2021 SAP SE or an SAP affiliate company. All rights reserved.
+-->
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<bean id="productSyndicationSystemSetup"
+		class="com.sap.cx.productsyndication.setup.impl.ProductSyndicationSystemSetup"
+		parent="abstractCoreSystemSetup"/>
+
+	<alias name="productSyndicationOutboundSyncService" alias="outboundSyncService"/>
+	<bean id="productSyndicationOutboundSyncService"
+			class="com.sap.cx.productsyndication.outboundsync.activator.impl.ProductSyndicationOutboundSyncService">
+		<constructor-arg name="itemModelSearchService" ref="itemModelSearchService"/>
+		<constructor-arg name="jobRegister" ref="outboundSyncJobRegister"/>
+		<constructor-arg name="outboundItemFactory" ref="outboundItemFactory"/>
+		<constructor-arg name="batchResponseParser" ref="outboundMultiPartResponseParser"/>
+		<constructor-arg name="outboundServiceFacade" ref="outboundServiceFacade"/>
+		<property name="modelService" ref="modelService"/>
+		<property name="syncRetryService" ref="syncRetryService"/>
+		<property name="eventService" ref="eventService"/>
+		<property name="outboundItemConsumer" ref="outboundItemConsumer" />
+	</bean>
+
+	<alias name="productSyndicationBatchRequestGenerator" alias="multiPartRequestGenerator"/>
+	<bean id="productSyndicationBatchRequestGenerator"
+		class="com.sap.cx.productsyndication.outboundservices.batch.ProductSyndicationBatchRequestGenerator">
+		<constructor-arg name="requestConsolidator" ref="outboundMultiPartRequestConsolidator"/>
+	</bean>
+
+	<alias name="lowerCaseHeadersHttpHeaderToMapConverter" alias="httpHeaderToMapConverter" />
+	<bean id="lowerCaseHeadersHttpHeaderToMapConverter" class="de.hybris.platform.outboundservices.batch.LowerCaseHeadersHttpHeaderToMapConverter" />
+</beans>

@@ -1,0 +1,112 @@
+# Integration object
+INSERT_UPDATE IntegrationObject; code[unique = true]
+                               ; VariantProduct
+
+INSERT_UPDATE IntegrationObjectItem; integrationObject(code)[unique = true]; code[unique = true]       ; type(code)                ; root[default = false]; itemTypeMatch(code)
+                                   ; VariantProduct                        ; CatalogVersion            ; CatalogVersion            ;                      ; RESTRICT_TO_ITEM_TYPE
+                                   ; VariantProduct                        ; Catalog                   ; Catalog                   ;                      ; ALL_SUBTYPES
+                                   ; VariantProduct                        ; Currency                  ; Currency                  ;                      ; RESTRICT_TO_ITEM_TYPE
+                                   ; VariantProduct                        ; PriceRow                  ; PriceRow                  ;                      ; ALL_SUBTYPES
+                                   ; VariantProduct                        ; ArticleApprovalStatus     ; ArticleApprovalStatus     ;                      ; ALL_SUBTYPES
+                                   ; VariantProduct                        ; ApparelSizeVariantProduct ; ApparelSizeVariantProduct ; true                 ; ALL_SUBTYPES
+
+INSERT_UPDATE IntegrationObjectItemAttribute; integrationObjectItem(integrationObject(code), code)[unique = true]; attributeName[unique = true]; attributeDescriptor(enclosingType(code), qualifier); returnIntegrationObjectItem(integrationObject(code), code); unique[default = false]
+# Catalog Version and Catalog
+                                            ; VariantProduct:CatalogVersion                                      ; version                     ; CatalogVersion:version                             ;                                                           ;
+                                            ; VariantProduct:CatalogVersion                                      ; active                      ; CatalogVersion:active                              ;                                                           ;
+                                            ; VariantProduct:CatalogVersion                                      ; catalog                     ; CatalogVersion:catalog                             ; VariantProduct:Catalog                                    ;
+                                            ; VariantProduct:Catalog                                             ; id                          ; Catalog:id                                         ;                                                           ; true
+# Price
+                                            ; VariantProduct:Currency                                            ; isocode                     ; Currency:isocode                                   ;                                                           ; true
+                                            ; VariantProduct:PriceRow                                            ; net                         ; PriceRow:net                                       ;                                                           ; true
+                                            ; VariantProduct:PriceRow                                            ; currency                    ; PriceRow:currency                                  ; VariantProduct:Currency                                   ; true
+                                            ; VariantProduct:PriceRow                                            ; price                       ; PriceRow:price                                     ;                                                           ;
+# Product
+                                            ; VariantProduct:ApparelSizeVariantProduct                           ; catalogVersion              ; ApparelSizeVariantProduct:catalogVersion           ; VariantProduct:CatalogVersion                             ;
+                                            ; VariantProduct:ApparelSizeVariantProduct                           ; code                        ; ApparelSizeVariantProduct:code                     ;                                                           ; true
+                                            ; VariantProduct:ApparelSizeVariantProduct                           ; name                        ; ApparelSizeVariantProduct:name                     ;                                                           ;
+                                            ; VariantProduct:ApparelSizeVariantProduct                           ; ean                         ; ApparelSizeVariantProduct:ean                      ;                                                           ;
+                                            ; VariantProduct:ApparelSizeVariantProduct                           ; mpn                         ; ApparelSizeVariantProduct:manufacturerAID          ;                                                           ;
+                                            ; VariantProduct:ApparelSizeVariantProduct                           ; size                        ; ApparelSizeVariantProduct:size                     ;                                                           ;
+                                            ; VariantProduct:ApparelSizeVariantProduct                           ; approvalStatus              ; ApparelSizeVariantProduct:approvalStatus           ; VariantProduct:ArticleApprovalStatus                      ;
+                                            ; VariantProduct:ArticleApprovalStatus                               ; code                        ; ArticleApprovalStatus:code                         ;                                                           ; true
+                                            ; VariantProduct:ApparelSizeVariantProduct                           ; europe1Prices               ; ApparelSizeVariantProduct:europe1Prices            ; VariantProduct:PriceRow                                   ;
+                                            ; VariantProduct:ApparelSizeVariantProduct                           ; expirationDate              ; ApparelSizeVariantProduct:offlineDate
+                                            ; VariantProduct:ApparelSizeVariantProduct                           ; availabilityDate            ; ApparelSizeVariantProduct:onlineDate
+
+# Scripts for virtual attributes - this REMOVE prevents any issues with versioning
+REMOVE Script[batchmode = true]; code[unique = true]
+                               ; VariantProductStyleAttribute
+                               ; VariantProductGroupIdAttribute
+                               ; VariantProductGenderAttribute
+                               ; VariantProductAgeAttribute
+                               ; VariantProductImageUrlAttribute
+                               ; VariantProductDescriptionAttribute
+
+INSERT_UPDATE Script; code[unique = true]                 ; scriptType(code); active; content
+                    ; VariantProductStyleAttribute        ; GROOVY          ; true  ; "itemModel.baseProduct.style"
+                    ; VariantProductGroupIdAttribute      ; GROOVY          ; true  ; "itemModel.baseProduct.baseProduct.code"
+                    ; VariantProductDescriptionAttribute  ; GROOVY          ; true  ; "itemModel.description?.trim() ?: itemModel.baseProduct.baseProduct.description"
+                    ; VariantProductGenderAttribute       ; GROOVY          ; true  ; "
+def WOMENCATEGORIES = List.of('370000','240000','400000','200000','260000')
+def MENCATEGORIES = List.of('190000','250000','220000','210000','230000')
+def cats = itemModel.supercategories
+def allSuperCats= categoryService.getAllSupercategories(cats)
+cats=cats + allSuperCats
+def gender = 'unisex'
+for (i = 0; i < cats.size(); ++i) {
+  if(WOMENCATEGORIES.contains(cats[i].code)) {
+     gender = 'female';
+     break;
+  }
+  if(MENCATEGORIES.contains(cats[i].code)) {
+     gender = 'male';
+     break;
+  }
+}
+
+gender
+"
+                    ; VariantProductAgeAttribute          ; GROOVY          ; true  ; "
+def YOUTHCATEGORIES = List.of('380000','290000','390000','30000','330000','270000')
+def cats = itemModel.supercategories
+def allSuperCats= categoryService.getAllSupercategories(cats)
+cats=cats + allSuperCats
+def age = 'adult'
+for (i = 0; i < cats.size(); ++i) {
+  if(YOUTHCATEGORIES.contains(cats[i].code)) {
+     age = 'kids';
+     break;
+  }
+}
+
+age
+"
+                    ; VariantProductImageUrlAttribute     ; GROOVY          ; true  ; "itemModel.baseProduct?.picture?.url"
+
+# Virtual attributes for Generic Product has been defined in the genericproduct.impex.
+INSERT_UPDATE IntegrationObjectItemVirtualAttribute; integrationObjectItem(integrationObject(code), code)[unique = true]; attributeName[unique = true]; retrievalDescriptor(code)
+                                                   ; VariantProduct:ApparelSizeVariantProduct                           ; url                         ; GenericProductUrl
+                                                   ; VariantProduct:ApparelSizeVariantProduct                           ; imageUrl                    ; VariantProductImageUrl
+                                                   ; VariantProduct:ApparelSizeVariantProduct                           ; availability                ; GenericProductAvailability
+                                                   ; VariantProduct:ApparelSizeVariantProduct                           ; brand                       ; GenericProductBrand
+                                                   ; VariantProduct:ApparelSizeVariantProduct                           ; condition                   ; GenericProductCondition
+                                                   ; VariantProduct:ApparelSizeVariantProduct                           ; itemGroupId                 ; VariantProductGroupId
+                                                   ; VariantProduct:ApparelSizeVariantProduct                           ; gender                      ; VariantProductGender
+                                                   ; VariantProduct:ApparelSizeVariantProduct                           ; age                         ; VariantProductAge
+                                                   ; VariantProduct:ApparelSizeVariantProduct                           ; color                       ; VariantProductStyle
+                                                   ; VariantProduct:ApparelSizeVariantProduct                           ; description                 ; VariantProductDescription
+                                                   ; VariantProduct:ApparelSizeVariantProduct                           ; taxes                       ; GenericProductUSTax
+                                                   ; VariantProduct:ApparelSizeVariantProduct                           ; bundle                      ; GenericProductBundle
+
+INSERT_UPDATE IntegrationObjectVirtualAttributeDescriptor; code[unique = true]        ; logicLocation(code)                         ; type(code)
+                                                         ; VariantProductStyle        ; model://VariantProductStyleAttribute        ; java.lang.String
+                                                         ; VariantProductGroupId      ; model://VariantProductGroupIdAttribute      ; java.lang.String
+                                                         ; VariantProductGender       ; model://VariantProductGenderAttribute       ; java.lang.String
+                                                         ; VariantProductAge          ; model://VariantProductAgeAttribute          ; java.lang.String
+                                                         ; VariantProductImageUrl     ; model://VariantProductImageUrlAttribute     ; java.lang.String
+                                                         ; VariantProductDescription  ; model://VariantProductDescriptionAttribute  ; java.lang.String
+
+# Inbound channel to allow for testing values with a REST client like Postman
+INSERT_UPDATE InboundChannelConfiguration; integrationObject(code)[unique = true]; authenticationType(code)
+                                         ; VariantProduct                        ; BASIC

@@ -1,0 +1,24 @@
+INSERT_UPDATE IntegrationObject ; code[unique = true] ; integrationType(code)
+                                ; SupplementalProductData            ; INBOUND              
+                                
+INSERT_UPDATE IntegrationObjectItem ; integrationObject(code)[unique = true] ; code[unique = true] ; type(code)     ; root[default = false] ; itemTypeMatch(code)     
+                                    ; SupplementalProductData                               ; Currency            ; Currency       ;                       ; ALL_SUB_AND_SUPER_TYPES ;  
+                                    ; SupplementalProductData                               ; PriceRow            ; PriceRow       ; true                  ; ALL_SUB_AND_SUPER_TYPES ;  
+                                    ; SupplementalProductData                               ; Catalog             ; Catalog        ;                       ; ALL_SUB_AND_SUPER_TYPES ;  
+                                    ; SupplementalProductData                               ; CatalogVersion      ; CatalogVersion ;                       ; ALL_SUB_AND_SUPER_TYPES ;  
+                                    
+INSERT_UPDATE IntegrationObjectItemAttribute ; integrationObjectItem(integrationObject(code), code)[unique = true] ; attributeName[unique = true] ; attributeDescriptor(enclosingType(code), qualifier) ; returnIntegrationObjectItem(integrationObject(code), code) ; unique[default = false] ; autoCreate[default = false]
+                                             ; SupplementalProductData:Currency                                    ; isocode                      ; Currency:isocode                                    ;                                                            ; true
+                                             ; SupplementalProductData:PriceRow                                    ; currency                     ; PriceRow:currency                                   ; SupplementalProductData:Currency
+                                             ; SupplementalProductData:PriceRow                                    ; net                          ; PriceRow:net                                        ;                                                            ; true
+                                             ; SupplementalProductData:PriceRow                                    ; productId                    ; PriceRow:productId                                  ;                                                            ; true
+                                             ; SupplementalProductData:PriceRow                                    ; catalogVersion               ; PriceRow:catalogVersion                             ; SupplementalProductData:CatalogVersion                                    ; true
+                                             ; SupplementalProductData:PriceRow                                    ; price                        ; PriceRow:price                                      ;                                                            ; true
+                                             ; SupplementalProductData:Catalog                                     ; id                           ; Catalog:id                                          ;                                                            ; true
+                                             ; SupplementalProductData:CatalogVersion                              ; catalog                      ; CatalogVersion:catalog                              ; SupplementalProductData:Catalog                                           ; true
+                                             ; SupplementalProductData:CatalogVersion                              ; version                      ; CatalogVersion:version                              ;                                                            ; true
+
+
+# Inbound channel to allow for testing values with a REST client like Postman
+INSERT_UPDATE InboundChannelConfiguration ; integrationObject(code)[unique = true] ; authenticationType(code)
+                                          ; SupplementalProductData                               ; BASIC                   

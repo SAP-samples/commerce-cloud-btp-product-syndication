@@ -1,0 +1,75 @@
+# Product Syndication - Generic Product Export Configuration
+# placeholders in file:
+# * clientId - OAuth Client to Product Syndication
+# * clientSecret - OAuth Client Secret to Product Syndication
+# * authUrl - OAuth Server URL for Product Syndication
+# * productSyndicationDomain - Product Syndication URL domain. Product Syndication service is accessible in /productsyndication context path
+# * adChannelAccountName - Ad Channel
+# * locale - 2-letter ISO-639-1 locale symbol which you want to feed: e.g. en
+# * countryIsoCode - 2-letter ISO-3166-1 alpha-2, e.g. US
+
+INSERT_UPDATE OAuthClientDetails; clientId[unique = true] ; oAuthUrl    ; scope      ; authorizedGrantTypes; clientSecret
+                                ; {{clientId}}            ; {{authUrl}} ; write,read ; client_credentials  ; {{clientSecret}}
+
+INSERT_UPDATE ConsumedOAuthCredential; id[unique = true]                     ; clientId     ; clientSecret    ; oAuthUrl
+                                     ; GenericProductConsumedOAuthCredential ; {{clientId}} ;{{clientSecret}} ; {{authUrl}}
+
+# Note: name and specUrl or specData attribute values are required in order to create the Endpoint, but does not affect outboundSync functionality.
+INSERT_UPDATE Endpoint; id[unique = true]              ; version[unique = true]; name                           ; specUrl
+                      ; GenericProductOutboundEndpoint ; endpoint_version_1.0  ; GenericProductOutboundEndpoint ; {{productSyndicationDomain}}/productsyndication/odata2/{{adChannelAccountName}}/{{locale}}/{{countryIsocode}}
+
+INSERT_UPDATE DestinationTarget; id[unique = true]
+                               ; GenericProductOutboundTarget
+
+INSERT_UPDATE ConsumedDestination; id[unique = true]                         ; url                                                       ; endpoint(id, version)                               ; destinationTarget(id)        ; credential(id)
+                                 ; GenericProductOutboundConsumedDestination ; {{productSyndicationDomain}}/productsyndication/odata2/{{adChannelAccountName}}/{{locale}}/{{countryIsocode}} ; GenericProductOutboundEndpoint:endpoint_version_1.0 ; GenericProductOutboundTarget ; GenericProductConsumedOAuthCredential
+
+# Then to create the OutboundChannelConfiguration, OutboundSyncStreamConfigurationContainer, OutboundSyncStreamConfiguration(s), OutboundSyncJob & OutboundSyncCronJob either import:
+INSERT_UPDATE OutboundChannelConfiguration; code[unique = true]                 ; integrationObject(code); destination(id)                           ; autoGenerate; batch
+                                          ; GenericProductOutboundChannelConfig ; GenericProduct         ; GenericProductOutboundConsumedDestination ; true        ; true
+
+# Update the job session attributes
+INSERT_UPDATE OutboundSyncJob; code[unique = true]                    ; sessionLanguage(isocode); sessionCurrency(isocode); sessionUser(uid)
+                             ; GenericProductOutboundChannelConfigJob ; en                      ; USD                     ; admin
+
+INSERT_UPDATE OutboundSyncCronJob; code[unique = true]                        ; sessionLanguage(isocode); sessionCurrency(isocode); sessionUser(uid)
+                                 ; GenericProductOutboundChannelConfigCronJob ; en                      ; USD                     ; admin
+
+INSERT_UPDATE Trigger; cronJob(code)[unique = true]      ; second; minute; hour; day; month; year; relative; maxAcceptableDelay
+                    ; GenericProductOutboundChannelConfigCronJob; 0;    0; 0    ;  7  ;  -1  ; -1;   true    ; -1
+
+# Update the stream whereClause to only send online products that are approved
+UPDATE OutboundSyncStreamConfiguration; streamId[unique = true]                            ; whereClause
+                                      ; GenericProductOutboundChannelConfig_Product_Stream ; "
+{item.approvalStatus} = ({{ SELECT {e.pk} FROM {ArticleApprovalStatus AS e} WHERE {e.codeLowerCase} = 'approved' }})
+AND {item.catalogVersion} IN ({{ SELECT {c.pk} FROM {CatalogVersion AS c} WHERE {c.version} = 'Online' }})
+"
+
+# Reset the stream
+REMOVE Script[batchmode = true]; code[unique = true]
+                               ; GenericProductResetStream
+
+INSERT_UPDATE Script; code[unique = true]       ; scriptType(code); active; content
+                    ; GenericProductResetStream ; GROOVY          ; true  ; "
+import org.slf4j.LoggerFactory
+
+LoggerFactory.getLogger('GenericProductResetStream_script').info('Resetting the generic product outbound stream')
+changeDetectionService.resetStream 'GenericProductOutboundChannelConfig_Product_Stream'
+"
+
+INSERT_UPDATE ScriptingJob; code[unique = true]          ; scriptURI
+                          ; GenericProductResetStreamJob ; model://GenericProductResetStream
+
+INSERT_UPDATE CronJob; code[unique = true]              ; job(code)                    ; sessionUser(uid); sessionLanguage(isocode); sessionCurrency(isocode)
+                     ; GenericProductResetStreamCronJob ; GenericProductResetStreamJob ; admin           ; en                      ; EUR
+
+# Composite job
+INSERT_UPDATE CompositeEntry; code[unique = true]                             ; executableCronJob(code)
+                            ; GenericProductResetStreamCronJobEntry           ; GenericProductResetStreamCronJob
+                            ; GenericProductOutboundChannelConfigCronJobEntry ; GenericProductOutboundChannelConfigCronJob
+
+INSERT_UPDATE CompositeCronJob; code[unique = true]               ; job(code)               ; compositeEntries(code)                                                                ; sessionUser(uid); sessionLanguage(isocode); sessionCurrency(isocode)
+                                          ; GenericProductOutboundFullCronJob ; compositeJobPerformable ; GenericProductResetStreamCronJobEntry,GenericProductOutboundChannelConfigCronJobEntry ; admin           ; en                      ; EUR
+
+INSERT_UPDATE Trigger; cronJob(code)[unique = true]      ; second; minute; hour; day; month; year; relative; maxAcceptableDelay
+                     ; GenericProductOutboundFullCronJob ; 0     ; 0     ; 0   ; 30 ; -1   ; -1  ; true    ; -1

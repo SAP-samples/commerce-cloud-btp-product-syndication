@@ -1,33 +1,28 @@
-# SAP-samples/repository-template
-This default template for SAP Samples repositories includes files for README, LICENSE, and .reuse/dep5. All repositories on github.com/SAP-samples will be created based on this template.
+# Product Syndication for SAP Commerce Cloud
 
-# Containing Files
+Project contains sample configuration which should simplify setting up integration BTP booster Product Syndication.
 
-1. The LICENSE file:
-In most cases, the license for SAP sample projects is `Apache 2.0`.
+Product Syndication for SAP Commerce Cloud is a multi-tenant SaaS solution by SAP that allows pushing product data from your store to Google Merchant Center.
 
-2. The .reuse/dep5 file: 
-The [Reuse Tool](https://reuse.software/) must be used for your samples project. You can find the .reuse/dep5 in the project initial. Please replace the parts inside the single angle quotation marks < > by the specific information for your repository.
+Products pushed to Google Content API will be available in Google Shopping ads, Google Search or YouTube.
 
-3. The README.md file (this file):
-Please edit this file as it is the primary description file for your project. You can find some placeholder titles for sections below.
+Product syndication can be set to be pushed regularly as a whole bulk upload or include just recently modified products.
 
-# [Title]
-<!-- Please include descriptive title -->
+## Supported Syndication Platforms
 
-<!--- Register repository https://api.reuse.software/register, then add REUSE badge:
-[![REUSE status](https://api.reuse.software/badge/github.com/SAP-samples/REPO-NAME)](https://api.reuse.software/info/github.com/SAP-samples/REPO-NAME)
--->
+Below table show supported platforms for BTP application:
 
-## Description
-<!-- Please include SEO-friendly description -->
+| Syndication Platform | Version 1.0 | Version 2.0 |
+|----------------------|-------------|-------------|
+| Google Merchant Center| 🟢 | 🟢 |
+| TikTok Shop | 🔴 | 🟢 |
+| Facebook Commerce Manager | 🔴 | 🟢 |
+| Instagram Commerce Manager | 🔴 | 🟢 |
 
 ## Requirements
 
-## Download and Installation
+Extension has been tested with SAP Commerce Cloud 2211. We do not guarantee that it supports older versions.
 
-## Known Issues
-<!-- You may simply state "No known issues. -->
 
 ## How to obtain support
 [Create an issue](https://github.com/SAP-samples/<repository-name>/issues) in this repository if you find a bug or have questions about the content.
