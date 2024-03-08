@@ -8,7 +8,6 @@
   <meta name="description" content="Description">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
   <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
-  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.css">
 </head>
 
 <body>
@@ -17,47 +16,17 @@
   <script>
 
     var num = 0;
-    mermaid.initialize({ startOnLoad: false });
+    var repo = 'https://github.com/SAP-samples/commerce-cloud-btp-product-syndication';
 
     window.$docsify = {
+      name: 'SAP Product Syndication Integration',
+      repo,
+      auto2top: true,
+      coverpage: false,
       loadSidebar: true,
-      loadNavbar: true,
+      themeColor: '#3271a8',
+
       subMaxLevel: 2,
-      search: {
-        maxAge: 86400000, // Expiration time, the default one day
-        paths: [], // or 'auto'
-        placeholder: 'Type to search',
-
-        // Localization
-        placeholder: {
-          '/zh-cn/': '搜索',
-          '/': 'Type to search',
-        },
-
-        noData: 'No Results!',
-
-        // Localization
-        noData: {
-          '/zh-cn/': '找不到结果',
-          '/': 'No Results',
-        },
-        // Headline depth, 1 - 6
-        depth: 2,
-        name: '',
-        repo: ''
-      },
-      markdown: {
-        renderer: {
-          code: function (code, lang) {
-            if (lang === "mermaid") {
-              return (
-                '<div class="mermaid">' + mermaid.render('mermaid-svg-' + num++, code) + "</div>"
-              );
-            }
-            return this.origin.code.apply(this, arguments);
-          }
-        }
-      }
     }
   </script>
   <!-- Docsify v4 -->
@@ -67,7 +36,6 @@
   <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/zoom-image.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/docsify-copy-code/dist/docsify-copy-code.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/docsify-pagination/dist/docsify-pagination.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
 </body>
 
 </html>
