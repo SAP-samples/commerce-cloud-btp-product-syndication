@@ -76,10 +76,14 @@ Product Syndication allows you to configure multiple accounts. That feature allo
 
 When your instance hosts multiple separate brands e.g. **https://premium-electronics.com** and **https://wholesale-electronics.com**. Even when you have the same prices you may have a situation where on one website you sell just a subset of products and only these should be pushed to Google.
 
-<ul><li>Create a separate merchant account for **https://premium-electronics.com**, claim that shop domain, create Service Account for it and add it as Ad Channel in Product Syndication</li><li>Create a separate merchant account for **https://wholesale-electronics.com**, claim that shop domain, create Service Account for it and add it as Ad Channel in Product Syndication</li></ul>### Multiple countries With Product Separation
+ - Create a separate merchant account for **https://premium-electronics.com**, claim that shop domain, create Service Account for it and add it as Ad Channel in Product Syndication
+ - Create a separate merchant account for **https://wholesale-electronics.com**, claim that shop domain, create Service Account for it and add it as Ad Channel in Product Syndication
+ 
+ ### Multiple countries With Product Separation
 
 If your shop supports multiple countries with any product separation i.e. different product availability, stock levels, or prices it is recommended to separate the product feed on Google Merchant.
 
 In case when you have **https://premium-electronics.de** and **https://premium-electronics.fr.** Each shop has a separate pricing strategy and a local warehouse where goods are delivered. All data stay in Commerce Cloud but have to be split not to mix e.g. product availability, prices, or different product description.
 
-<ul><li>Create a separate merchant account for **https://premium-electronics.de,** claim that shop domain, create Service Account for it and add it as Ad Channel in Product Syndication</li><li>Create a separate merchant account for **https://premium-electronics.fr, **claim that shop domain, create Service Account for it and add it as Ad Channel in Product Syndication</li></ul>
+ - Create a separate merchant account for **https://premium-electronics.de,** claim that shop domain, create Service Account for it and add it as Ad Channel in Product Syndication
+ - Create a separate merchant account for **https://premium-electronics.fr, **claim that shop domain, create Service Account for it and add it as Ad Channel in Product Syndication
