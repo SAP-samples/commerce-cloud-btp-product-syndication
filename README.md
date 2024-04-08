@@ -1,5 +1,8 @@
 # Product Syndication for SAP Commerce Cloud
 
+[![REUSE status](https://api.reuse.software/badge/github.com/SAP-samples/commerce-cloud-btp-product-syndication)](https://api.reuse.software/info/github.com/SAP-samples/commerce-cloud-btp-product-syndication)
+
+
 Project contains sample configuration which should simplify setting up integration BTP booster Product Syndication.
 
 Product Syndication for SAP Commerce Cloud is a multi-tenant SaaS solution by SAP that allows pushing product data from your store to Google Merchant Center.
