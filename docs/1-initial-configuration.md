@@ -1,6 +1,11 @@
 # Initial Configuration
 
-## Set Up Google Merchant Account
+Initial Configuration is based on few steps:
+
+ - Set up Google Merchant Center Account
+ - Subscribe to Product Syndication application on BTP
+
+# Set Up Google Merchant Center Account
 
 Google Merchant account must have a few sections completed to continue with Product Syndication. The list has been mentioned in the [Google Merchant Requirements](./0-what-is-product-syndication.md#) section.
 
@@ -29,6 +34,17 @@ If you sell goods to the US, you are obliged to <a href="https://support.google.
 
 ## Need Help Setting Up Google Account?
 Google provides a detailed <a href="https://support.google.com/merchants/answer/188924?hl=en&amp;visit_id=638048092133601424-1029073165&amp;ref_topic=3163841&amp;rd=1">Help Center</a> where you can find all information related to Merchant Center.
+
+# Subscribe to Product Syndication Application on BTP
+
+## BTP User Roles
+
+When you subscribed to Product Syndication service, it is required to set up user authorization to get access to application and pushing product set to your Google Account.
+
+The application comes with few Role Collections required for further configuration:
+
+<table><thead><tr><th><div>Role Template Name</div></th><th><div>Role Collection Name</div></th><th><div>Description</div></th></tr></thead><tbody><tr><td><p>Syndication</p></td><td><p>Product Syndication Transactions</p></td><td>User with possibility to review data stored in Product Syndication application</td></tr><tr><td><p>SyndicationAdmin</p></td><td><p>Product Syndication Administrator</p></td><td>User with possibility to view &amp; change channel authentication data (Google credentials to Google Merchant Center)</td></tr><tr><td><p>SyndicationPush</p></td><td><p>Product Syndication Push</p></td><td>Technical user with possibility to push product data to Product Syndication application</td></tr></tbody></table>
+
 
 # Configure Google Account in Channel Administration
 When a Google Merchant Center service account is created, we can connect Product Syndication with Google. Visit your Product Syndication URL and follow the steps below.

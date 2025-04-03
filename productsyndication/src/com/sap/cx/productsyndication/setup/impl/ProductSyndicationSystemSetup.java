@@ -1,9 +1,5 @@
 package com.sap.cx.productsyndication.setup.impl;
 
-import static com.sap.cx.productsyndication.constants.ProductsyndicationConstants.CLEANUP_EXISTING_DATA;
-import static com.sap.cx.productsyndication.constants.ProductsyndicationConstants.EXTENSIONNAME;
-import static com.sap.cx.productsyndication.constants.ProductsyndicationConstants.IMPORT_SAMPLE_DATA;
-
 import de.hybris.platform.commerceservices.setup.AbstractSystemSetup;
 import de.hybris.platform.core.initialization.SystemSetup;
 import de.hybris.platform.core.initialization.SystemSetup.Process;

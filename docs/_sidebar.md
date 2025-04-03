@@ -2,3 +2,4 @@
 - Getting Started
   - [What is Product Syndication?](0-what-is-product-syndication.md)
   - [Initial Configuration](1-initial-configuration.md)
+  - [Configure Your Product Export](2-configure-your-product-export.md)
