@@ -1,0 +1,22 @@
+{
+  "name": "commerce-cloud-btp-product-syndication",
+  "version": "1.0.0",
+  "description": "[![REUSE status](https://api.reuse.software/badge/github.com/SAP-samples/commerce-cloud-btp-product-syndication)](https://api.reuse.software/info/github.com/SAP-samples/commerce-cloud-btp-product-syndication)",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SAP-samples/commerce-cloud-btp-product-syndication.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/SAP-samples/commerce-cloud-btp-product-syndication/issues"
+  },
+  "homepage": "https://github.com/SAP-samples/commerce-cloud-btp-product-syndication#readme"
+}
