@@ -8,17 +8,6 @@ Products pushed to Google Content API will be available in Google Shopping ads, 
 
 Product syndication can be set to be pushed regularly as a whole bulk upload or include just recently modified products.
 
-## Supported Syndication Platforms
-
-Below table show supported platforms for BTP application:
-
-| Syndication Platform | Version 1.0 | Version 2.0 |
-|----------------------|-------------|-------------|
-| Google Merchant Center| 🟢 | 🟢 |
-| TikTok Shop | 🔴 | 🟢 |
-| Facebook Commerce Manager | 🔴 | 🟢 |
-| Instagram Commerce Manager | 🔴 | 🟢 |
-
 ## Requirements
 
 Extension has been tested with SAP Commerce Cloud 2211. We do not guarantee that it supports older versions.
